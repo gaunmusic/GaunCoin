@@ -1,0 +1,37 @@
+import requests
+from flask import Flask, request
+
+BOT_TOKEN = "[YOUR_BOT_TOKEN]"
+
+app = Flask(__name__)
+
+@app.route("/callback", methods=["POST"])
+def callback():
+    update = request.json
+
+    if update["message"]:
+        chat_id = update["message"]["chat"]["id"]
+        text = update["message"]["text"]
+
+        if text == "/start":
+            send_message(chat_id, "Добро пожаловать в мою игру!")
+        elif text == "/help":
+            send_message(chat_id, "Введите любое число от 1 до 100, и я попробую его угадать.")
+        else:
+            try:
+                guess = int(text)
+                if guess < 1 or guess > 100:
+                    send_message(chat_id, "Число должно быть между 1 и 100.")
+                else:
+                    send_message(chat_id, "Я угадал число?")
+            except ValueError:
+                send_message(chat_id, "Пожалуйста, введите правильное число.")
+
+    return "", 200
+
+def send_message(chat_id, message):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage?chat_id={chat_id}&text={message}"
+    requests.get(url)
+
+if __name__ == "__main__":
+    app.run()
